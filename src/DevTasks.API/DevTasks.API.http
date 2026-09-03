@@ -1,0 +1,6 @@
+@DevTasks.API_HostAddress = http://localhost:5033
+
+GET {{DevTasks.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

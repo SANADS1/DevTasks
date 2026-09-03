@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: DevTasksDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Adunni123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    ports:
+      - "5341:5341"
+      - "8080:80"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/DevTasks.API/Dockerfile
+    ports:
+      - "5033:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=DevTasksDb;Username=postgres;Password=Adunni123"
+      ConnectionStrings__Redis: "redis:6379"
+      Seq__ServerUrl: "http://seq:5341"
+      HANGFIRE_DASHBOARD_USER: admin
+      HANGFIRE_DASHBOARD_PASSWORD: 5@!Sanads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      seq:
+        condition: service_started
+
+volumes:
+  postgres-data:
